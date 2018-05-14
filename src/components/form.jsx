@@ -10,6 +10,10 @@ import {
   Modal,
   Header
 } from "semantic-ui-react";
+import {
+  NotificationContainer,
+  NotificationManager
+} from "react-notifications";
 import pdfMake from "pdfmake/build/pdfmake";
 import vfsFonts from "pdfmake/build/vfs_fonts";
 import background from "../img/background.jpg";
@@ -20,6 +24,7 @@ class EntryForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      checked: false,
       toggleEdit: false,
       toggleModal: false,
 
@@ -37,12 +42,13 @@ class EntryForm extends Component {
       footer: "",
       logo: ""
     };
-    this.handleSubmit = this.handleSubmit.bind(this);
+    this.deleteEverything = this.deleteEverything.bind(this);
     this.handlePhotoSelect = this.handlePhotoSelect.bind(this);
     this.handleSchemaSelect = this.handleSchemaSelect.bind(this);
+    this.notificationCheck = this.notificationCheck.bind(this);
   }
 
-  handleSubmit() {
+  deleteEverything() {
     this.setState({
       reference: "",
       product: "",
@@ -52,6 +58,7 @@ class EntryForm extends Component {
       toggleModal: !this.state.toggleModal
     });
     $("span").html("");
+    NotificationManager.info("C'est nettoyé, tu peux recommencer !");
   }
 
   getDataUri(url, callback) {
@@ -166,11 +173,83 @@ class EntryForm extends Component {
     }
   }
 
+  notificationCheck() {
+    let reference = false;
+    let product = false;
+    let description = false;
+    let characteristics = false;
+    let dimensions = false;
+    let photos = false;
+    let schemas = false;
+
+    if (this.state.reference !== "") {
+      reference = true;
+    } else {
+      NotificationManager.warning("Il manque la référence !", "Attention");
+    }
+    if (this.state.product !== "") {
+      product = true;
+    } else {
+      NotificationManager.warning("Il manque le produit !", "Attention");
+    }
+    if (this.state.description !== "") {
+      description = true;
+    } else {
+      NotificationManager.warning("Il manque la description !", "Attention");
+    }
+    if (this.state.characteristics !== "") {
+      characteristics = true;
+    } else {
+      NotificationManager.warning(
+        "Il manque les caractéristiques !",
+        "Attention"
+      );
+    }
+    if (this.state.dimensions !== "") {
+      dimensions = true;
+    } else {
+      NotificationManager.warning("Il manque les dimensions !", "Attention");
+    }
+    if (this.state.photos !== "") {
+      photos = true;
+    } else {
+      NotificationManager.warning("Il manque la photo !", "Attention");
+    }
+    if (this.state.schemas !== "") {
+      schemas = true;
+    } else {
+      NotificationManager.warning("Il manque le schéma !", "Attention");
+    }
+    if (
+      reference === true &&
+      product === true &&
+      description === true &&
+      characteristics === true &&
+      dimensions === true &&
+      photos === true &&
+      schemas === true
+    ) {
+      if (this.state.checked === false) {
+        NotificationManager.success("On peut y aller !", "Parfait");
+        NotificationManager.info(
+          "Si tu veux de nouveau modifier les champs, il faut décocher.",
+          "Info",
+          10000
+        );
+      }
+      this.setState({
+        toggleEdit: !this.state.toggleEdit,
+        checked: !this.state.checked
+      });
+    }
+  }
+
   render() {
     $("#checkbox").change(function() {
       $("#photosUpload").toggleClass("disabled", this.checked);
       $("#schemasUpload").toggleClass("disabled", this.checked);
-      // $("#deletePhoto").toggleClass("disabled", this.checked);
+      $("#photo").attr("id", "disabledPhoto");
+      $("#schema").attr("id", "disabledSchema");
     });
     $("#deletePhoto").click(function() {
       $("#photo").html("");
@@ -178,7 +257,8 @@ class EntryForm extends Component {
     $("#deleteSchema").click(function() {
       $("#schema").html("");
     });
-    console.log(this);
+
+    // console.log(this);
     const { vfs } = vfsFonts.pdfMake;
     pdfMake.vfs = vfs;
 
@@ -233,7 +313,7 @@ class EntryForm extends Component {
                   margin: [60, 50, 0, 0]
                 },
                 {
-                  image: this.state.photos[this.state.photos.length -1],
+                  image: this.state.photos[this.state.photos.length - 1],
                   border: [false, false, false, false],
                   width: 100,
                   margin: [20, 0, 0, 0],
@@ -284,7 +364,7 @@ class EntryForm extends Component {
           style: "content"
         },
         {
-          image: this.state.schemas[this.state.schemas.length -1],
+          image: this.state.schemas[this.state.schemas.length - 1],
           width: 350,
           alignment: "center",
           margin: [0, 20, 0, 20]
@@ -356,7 +436,6 @@ class EntryForm extends Component {
                   reference: evt.target.value
                 })
               }
-              required
               label="Référence"
               placeholder="Référence"
               readOnly={this.state.toggleEdit ? true : false}
@@ -368,7 +447,6 @@ class EntryForm extends Component {
                   product: evt.target.value
                 })
               }
-              required
               label="Produit"
               placeholder="Produit"
               readOnly={this.state.toggleEdit ? true : false}
@@ -392,7 +470,6 @@ class EntryForm extends Component {
                 characteristics: evt.target.value
               })
             }
-            required
             label="Caractéristiques"
             placeholder="Caractéristiques"
             readOnly={this.state.toggleEdit ? true : false}
@@ -404,7 +481,6 @@ class EntryForm extends Component {
                 dimensions: evt.target.value
               })
             }
-            required
             label="Dimensions"
             placeholder="Dimensions"
             readOnly={this.state.toggleEdit ? true : false}
@@ -461,9 +537,8 @@ class EntryForm extends Component {
           <Form.Checkbox
             toggle
             id="checkbox"
-            onClick={() =>
-              this.setState({ toggleEdit: !this.state.toggleEdit })
-            }
+            onClick={this.notificationCheck}
+            checked={this.state.checked}
             label="J'ai tout renseigné, y a plus qu'à éditer !"
           />
           <Button
@@ -519,7 +594,7 @@ class EntryForm extends Component {
               >
                 <Icon name="close" /> Non
               </Button>
-              <Button color="red" inverted onClick={this.handleSubmit}>
+              <Button color="red" inverted onClick={this.deleteEverything}>
                 <Icon name="checkmark" /> Oui
               </Button>
             </Modal.Actions>
@@ -527,6 +602,7 @@ class EntryForm extends Component {
         </Form>
         <br />
         <br />
+        <NotificationContainer />
       </Container>
     );
   }
