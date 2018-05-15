@@ -271,7 +271,7 @@ class EntryForm extends Component {
         producer: "Romain Bonnefoy",
         CreationDate: new Date()
       },
-      pageMargins: [50, 100, 50, 75],
+      pageMargins: [50, 120, 50, 75],
       background: {
         image: this.state.background,
         fit: [596, 842]
@@ -429,7 +429,8 @@ class EntryForm extends Component {
         <br />
         <Form>
           <Form.Group widths="equal">
-            <Form.Input
+            <Form.TextArea
+              rows={1}
               value={this.state.reference}
               onChange={evt =>
                 this.setState({
